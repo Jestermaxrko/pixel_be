@@ -51,7 +51,7 @@ const confirmEmail = user => {
       });
     }, 5 * 60 * 1000);
 
-    let link = `${host}:${port}/verify?hash=${newUser.hash}`;
+    let link = `${host}:${port}/auth/verify?hash=${newUser.hash}`;
     let mailOptions = {
       to: user.email,
       subject: "Please confirm your Email account",
@@ -96,6 +96,7 @@ router.get("/validate-token", authenticate, async (req, res, next) => {
       err.status = 422;
       return next(err);
     }
+    
     res.status(200).json({user: prepareUser(user)});
   } catch (err) {
     next(err);
