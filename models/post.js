@@ -32,6 +32,19 @@ const PostSchema = new mongoose.Schema({
   description: String
 });
 
+
+PostSchema.statics.singlePost = async (req, res, next) => {
+  try {
+    req.post = await Post.findById(req.params.id).populate({ path: 'author', select: 'nickname avatar' });
+    if(req.post) return next();
+    const err = new Error('Post not found');
+    err.status = 404;
+    return next(err);
+  } catch (err) {
+    next(err);
+  }
+}
+
 PostSchema.statics.addPost = async (req, res, next) => {
   try{
     req.body.post.timestamp = Date.now(); 
