@@ -71,6 +71,10 @@ const removePostFromUser = async (req, res, next) => {
   }
 }
 
+router.get('/post/:id', Post.singlePost, (req, res, next) => {
+ res.status(200).json({ post: req.post });
+});
+
 router.post('/add-post', authenticate, saveToBucket, Post.addPost, addPostToUser, (req, res, next) => {
   res.status(200).json({ post: req.addedPost });
 });
