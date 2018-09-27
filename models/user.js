@@ -13,7 +13,7 @@ const UserSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    default: 'avatar/5ba68dab2c08b924204ee715/1537725117556.png'
+    default: 'avatar/5baa7267f606fb32f478051a/1538041875185.jpeg'
   },
   email: {
     type: String,
@@ -75,7 +75,18 @@ const getUser = async (query) => {
   return await User.findOne(query)
   .populate({ 
     path: 'posts',
-    populate: { path : 'author', select: 'nickname avatar'}
+    populate: {path : 'author', select: 'nickname avatar'}
+  })
+  .populate({ 
+    path: 'posts',
+    populate: {path : 'likes', select: 'nickname avatar fullName'}
+  })
+  .populate({
+    path: 'posts',
+    populate: {
+      path: 'comments.author',
+      select: 'nickname avatar'
+    }
   })
   .populate('followingsInfo', 'favorite newMessages followingId')
   .populate('followings', 'followers status nickname avatar bio website fullName -_id')
@@ -83,6 +94,21 @@ const getUser = async (query) => {
     path: 'followings', populate: {
       path:'posts',
       populate: { path : 'author', select: 'nickname avatar'}
+    }
+  })
+  .populate ({
+    path: 'followings', populate: {
+      path:'posts',
+      populate: {path : 'likes', select: 'nickname avatar fullName'}
+    }
+  })
+  .populate({
+    path: 'followings', populate: {
+      path: 'posts',
+      populate: {
+        path: 'comments.author',
+        select: 'nickname avatar'
+      }
     }
   })
   .populate('followers', 'status socketId');
@@ -331,6 +357,16 @@ UserSchema.statics.getProfile = async (req, res, next) => {
     ).populate({
       path: 'posts',
       populate: { path: 'author', select: 'nickname avatar' }
+    }).populate({ 
+      path: 'posts',
+      populate: {path : 'likes', select: 'nickname avatar fullName'}
+    })
+    .populate({
+      path: 'posts',
+      populate: {
+        path: 'comments.author',
+        select: 'nickname avatar'
+      }
     });
     if (req.payload) {
       next();
