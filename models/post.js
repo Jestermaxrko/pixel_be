@@ -19,13 +19,9 @@ const PostSchema = new mongoose.Schema({
       type: String,
       require: true
     },
-    author: {
-      type: String,
-      required: true
-    },
-    authorAvatar: {
-      type: String,
-      required: true
+    author: { 
+      type:  mongoose.Schema.ObjectId, ref: 'User',
+      require: true
     }
   } ],
   geolocation: String,
@@ -35,7 +31,10 @@ const PostSchema = new mongoose.Schema({
 
 PostSchema.statics.singlePost = async (req, res, next) => {
   try {
-    req.post = await Post.findById(req.params.id).populate({ path: 'author', select: 'nickname avatar' });
+    req.post = await Post.findById(req.params.id)
+    .populate({ path: 'author', select: 'nickname avatar' })
+    .populate({path: 'likes', select: 'nickname avatar fullName'})
+    .populate({path: 'comments.author', select:'nickname avatar'});
     if(req.post) return next();
     const err = new Error('Post not found');
     err.status = 404;
@@ -49,7 +48,8 @@ PostSchema.statics.addPost = async (req, res, next) => {
   try{
     req.body.post.timestamp = Date.now(); 
     const addedPost = await Post.create(req.body.post);
-    req.addedPost = await Post.populate(addedPost, { path: 'author', select: 'nickname avatar' });
+    req.addedPost = await Post
+    .populate(addedPost, { path: 'author', select: 'nickname avatar' })
     next();
   } catch(err) {
     next(err);
@@ -67,7 +67,11 @@ PostSchema.statics.removePost = async (req, res, next) => {
 
 PostSchema.statics.addLike = async (req, res, next) => {
   try{
-    const updatedPost = await Post.findByIdAndUpdate(req.body.postId, { $push: { likes: req.body.userId } }, { new: true });
+    const updatedPost = await Post.findByIdAndUpdate(req.body.postId, { $push: { likes: req.body.userId } }, { new: true })
+    .populate({ path: 'author', select: 'nickname avatar' })
+    .populate({path: 'likes', select: 'nickname avatar fullName'})
+    .populate({path: 'comments.author', select:'nickname avatar'});
+    
     req.likes = updatedPost.likes;
     req.postId = updatedPost._id;
     next();
@@ -78,7 +82,10 @@ PostSchema.statics.addLike = async (req, res, next) => {
 
 PostSchema.statics.removeLike = async (req, res, next) => {
   try {
-    const updatedPost = await Post.findByIdAndUpdate(req.body.postId, { $pull: { likes: req.body.userId } }, { new: true });
+    const updatedPost = await Post.findByIdAndUpdate(req.body.postId, { $pull: { likes: req.body.userId } }, { new: true })
+    .populate({ path: 'author', select: 'nickname avatar' })
+    .populate({path: 'likes', select: 'nickname avatar fullName'})
+    .populate({path: 'comments.author', select:'nickname avatar'});
     req.likes = updatedPost.likes;
     req.postId = updatedPost._id;
     next();
@@ -90,12 +97,14 @@ PostSchema.statics.removeLike = async (req, res, next) => {
 PostSchema.statics.addComment = async (req, res, next) => {
   const comment = {
     comment: req.body.comment,
-    author: req.body.userNickname,
-    authorAvatar: req.body.userAvatar
+    author: req.body.userId,
   }
 
   try{
-    const updatedPost = await Post.findByIdAndUpdate(req.body.postId, { $push: { comments: comment } }, { new: true });
+    const updatedPost = await Post.findByIdAndUpdate(req.body.postId, { $push: { comments: comment } }, { new: true })
+    .populate({ path: 'author', select: 'nickname avatar' })
+    .populate({path: 'likes', select: 'nickname avatar fullName'})
+    .populate({path: 'comments.author', select:'nickname avatar'});
     req.comments = updatedPost.comments;
     req.postId = updatedPost._id;
     next();
