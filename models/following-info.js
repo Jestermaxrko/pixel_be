@@ -41,7 +41,7 @@ FollowingInfoSchema.statics.unfollow = async (req, res, next) => {
 
 FollowingInfoSchema.statics.handleFavorite = async (req, res, next) => {
   try {
-    await FollowingInfo.findByIdAndUpdate(req.body.followingInfoId, {'favorite': req.body.checked});
+    await FollowingInfo.findByIdAndUpdate(req.body.followingInfoId, {'favorite': req.body.like});
     next();
   } catch (err) {
     next(err);
